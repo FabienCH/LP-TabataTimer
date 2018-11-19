@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="tabatatimer.MainActivity">
+    <LinearLayout
+        android:id="@+id/workout"
+        android:layout_height="match_parent"
+        android:layout_width="match_parent"
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/training_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_weight = "0"
+            android:text=""
+            android:textSize="25sp"
+            android:layout_marginTop="15dp"/>
+        <TextView
+            android:id="@+id/text_prep"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_weight = "0"
+            android:text="Préparation"
+            android:textSize="18sp"
+            android:layout_marginTop="15dp" />
+        <EditText
+            android:id="@+id/temps_prep"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:layout_weight = "0"
+            android:inputType="number"
+            android:text="" />
+        <TextView
+            android:id="@+id/text_exercice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_weight = "0"
+            android:text="Nombre d'exercices"
+            android:textSize="18sp"
+            android:layout_marginTop="15dp" />
+        <EditText
+            android:id="@+id/nb_exercice"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:inputType="number"
+            android:layout_weight = "0"
+            android:text=""
+            android:gravity="center" />
+        <TextView
+            android:id="@+id/text_repos"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_weight = "0"
+            android:text="Repos entre chaque exercice"
+            android:textSize="18sp"
+            android:layout_marginTop="15dp" />
+        <EditText
+            android:id="@+id/temps_reposL"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:inputType="number"
+            android:text=""
+            android:gravity="center"
+            android:layout_gravity="center"
+            android:layout_weight = "0" />
+        <ListView
+            android:id="@+id/text_liste_exercices"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight = "1"
+            android:layout_margin="10dp"
+            android:background="@android:color/transparent"
+            android:cacheColorHint="@android:color/transparent"
+            android:divider="#CCCCCC"
+            android:dividerHeight="1dp"
+            android:paddingLeft="2dp">
+        </ListView>
+        <Button android:id="@+id/button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_weight = "0"
+            android:layout_marginTop="15dp"
+            android:onClick="onClickAdd"
+            android:text="Ajouter Exercices" />
+    </LinearLayout>
+</android.support.constraint.ConstraintLayout>

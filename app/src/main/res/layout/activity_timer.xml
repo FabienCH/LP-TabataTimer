@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="tabatatimer.TimerActivity">
+    <LinearLayout
+        android:id="@+id/workout"
+        android:layout_height="match_parent"
+        android:layout_width="match_parent"
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/text_global_timer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight = "0"
+            android:text=""
+            android:layout_gravity="center"
+            android:textSize="25sp"
+            android:layout_marginTop="15dp"/>
+        <TextView
+            android:id="@+id/text_etape"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight = "0"
+            android:text=""
+            android:layout_gravity="center"
+            android:textSize="25sp"
+            android:layout_marginTop="30dp"/>
+        <TextView
+            android:id="@+id/text_timer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight = "0"
+            android:text=""
+            android:layout_gravity="center"
+            android:textSize="50sp"
+            android:layout_marginTop="15dp" />
+        <LinearLayout
+            android:id="@+id/control"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_weight = "0"
+            android:gravity="center"
+            android:orientation="horizontal">
+            <Button
+                android:id="@+id/pause_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:padding="20dp"
+                android:gravity="center"
+                android:onClick="onClickPause"
+                android:text=""
+                android:textSize="25sp" />
+            <Button android:id="@+id/stop_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:padding="20dp"
+                android:gravity="center"
+                android:onClick="onClickStop"
+                android:text=""
+                android:textSize="25sp" />
+        </LinearLayout>
+        <ListView
+            android:id="@+id/text_liste_etapes"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight = "1"
+            android:layout_margin="10dp"
+            android:background="@android:color/transparent"
+            android:cacheColorHint="@android:color/transparent"
+            android:divider="#CCCCCC"
+            android:dividerHeight="1dp"
+            android:paddingLeft="2dp">
+        </ListView>
+        <LinearLayout
+            android:id="@+id/remaning"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_weight = "0"
+            android:layout_gravity="center"
+            android:layout_marginBottom="15dp"
+            android:orientation="horizontal">
+            <TextView
+                android:id="@+id/text_cycle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight = "1"
+                android:gravity="center"
+                android:text=""
+                android:textSize="18sp" />
+            <TextView
+                android:id="@+id/text_serie"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight = "1"
+                android:gravity="center"
+                android:text=""
+                android:textSize="18sp" />
+        </LinearLayout>
+    </LinearLayout>
+</android.support.constraint.ConstraintLayout>
