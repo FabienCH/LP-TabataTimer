@@ -20,7 +20,6 @@ import tabatatimer.data.GetTraining;
 
 public class MainActivity extends AppCompatActivity {
 
-    private EditText input;
     private static Training training = new Training();
     private DatabaseClient mDb;
     protected ArrayList<String> trainingsNameList  = new ArrayList<String>();
@@ -36,11 +35,11 @@ public class MainActivity extends AppCompatActivity {
 
         mDb = DatabaseClient.getInstance(getApplicationContext());
 
+        // Récupération de la liste des entrainements depuis la base de données
         new GetAllTraining(new GetAllTraining.AsyncResponse(){
             @Override
+            // Récupère le résultat renvoyé par la méthode onPostExecute() de la classe GetAllTraining
             public void processFinish(List<Training> trainingFromDb){
-                //Here you will receive the result fired from async class
-                //of onPostExecute(result) method.
                 if(trainingFromDb != null && !trainingFromDb.isEmpty()) {
                     for(int i=0; i < trainingFromDb.size(); i++) {
                         trainingsNameList.add(trainingFromDb.get(i).getName());
@@ -55,8 +54,8 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    // Affiche la liste des entrainements
     public void setTrainingList() {
-        // Affiche la liste des étapes
         ListView listView = findViewById(R.id.liste_entrainements);
         adaptor = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, trainingsNameList);
         listView.setAdapter(adaptor);
@@ -64,13 +63,12 @@ public class MainActivity extends AppCompatActivity {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener()
         {
             @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, final int position, long id) {
-
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+                // Récupération l'entrainements sur lequel on a cliqué depuis la base de données
                 new GetTraining(new GetTraining.AsyncResponse(){
                     @Override
+                    // Récupère le résultat renvoyé par la méthode onPostExecute() de la classe GetTraining
                     public void processFinish(List<Training> trainingFromDb){
-                        //Here you will receive the result fired from async class
-                        //of onPostExecute(result) method.
                         if (trainingFromDb != null && !trainingFromDb.isEmpty()) {
                             //Initialise l'entrainement avec les données récupérées dans la base de données
                             training = trainingFromDb.get(0);
@@ -80,20 +78,21 @@ public class MainActivity extends AppCompatActivity {
                         startActivity(intent);
                     }
                 }, mDb, adapterView, position).execute();
-
             }
         });
     }
 
+    // Lorsque l'utilisateur souhaite créé un nouvel entraienement
     public void onClickCreate(View v) {
-        input = (EditText)findViewById(R.id.nom_entrainement);
-        String nomEntrainement = input.getText().toString();
-        if(nomEntrainement.isEmpty()){
+        EditText input = findViewById(R.id.nom_entrainement);
+        String trainingName = input.getText().toString();
+        if(trainingName.isEmpty()){
             Toast.makeText(getApplicationContext(), "Veillez entrer un nom d'entrainement", Toast.LENGTH_LONG).show();
         }
+        // Si l'utilisateur a bien entré un nom d'entrainement
         else{
             Intent intent = new Intent(this, TrainingSetupActivity.class);
-            intent.putExtra(TRAINING_NAME, nomEntrainement);
+            intent.putExtra(TRAINING_NAME, trainingName);
             startActivity(intent);
         }
     }

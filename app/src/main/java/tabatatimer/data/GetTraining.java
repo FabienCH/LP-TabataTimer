@@ -9,7 +9,7 @@ import tabatatimer.data.db.DatabaseClient;
 import tabatatimer.data.db.Training;
 
 /**
- * Création d'une classe asynchrone pour récupérer le dernier entrainement effectué
+ * Création d'une classe asynchrone pour récupérer un entrainement
  */
 public class GetTraining extends AsyncTask<Void, Void, List<Training>> {
 
@@ -19,7 +19,6 @@ public class GetTraining extends AsyncTask<Void, Void, List<Training>> {
     private int position;
     protected List<Training> trainingFromDb;
 
-    // you may separate this or combined to caller class.
     public interface AsyncResponse {
         void processFinish(List<Training> trainingFromDb);
     }
@@ -31,11 +30,9 @@ public class GetTraining extends AsyncTask<Void, Void, List<Training>> {
         this.position = position;
     }
 
-
     @Override
     protected List<Training> doInBackground(Void... Voids) {
         //Récupération dans la base de donné du dernier entrainement effectué
-        String toto = adapterView.getItemAtPosition(position).toString();
         trainingFromDb = mDb.getAppDatabase()
                 .trainingDao()
                 .getByName(adapterView.getItemAtPosition(position).toString());

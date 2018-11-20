@@ -1,7 +1,6 @@
 package tabatatimer;
 
 import android.content.Intent;
-import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -10,12 +9,11 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
 import tabatatimer.data.Compteur;
-import tabatatimer.data.Exercice;
+import tabatatimer.data.Exercise;
 import tabatatimer.data.OnUpdateListener;
 import tabatatimer.data.db.Training;
 
@@ -28,17 +26,17 @@ public class TimerActivity extends AppCompatActivity implements OnUpdateListener
 
     // DATA
     private Training training;
-    private Integer nbSerieRestante;
-    private Integer nbExercicesRestant;
-    private int tempsTotalExercices;
+    private Integer remainingRounds;
+    private Integer remainingExercises;
+    private int exercicesTotalTime;
 
-    private Compteur compteur;
+    private Compteur currentExerciseTimer;
     private Compteur globalTimer;
-    private LinkedHashMap<Integer, Exercice> exercices;
-    private int currentExerciceId;
+    private LinkedHashMap<Integer, Exercise> exercises;
+    private int currentExerciseId;
     private ArrayList<String> stepsList;
     private ArrayAdapter<String> adaptor;
-    LinkedHashMap<String, String> allText;
+    private LinkedHashMap<String, String> allText;
 
 
     @Override
@@ -53,63 +51,46 @@ public class TimerActivity extends AppCompatActivity implements OnUpdateListener
         }
         else {
             this.restoreMe(savedInstanceState);
-            setAllText();
+            restoreAllText();
             ListView listView = findViewById(R.id.text_liste_etapes);
             adaptor = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, stepsList);
             listView.setAdapter(adaptor);
-            miseAJour();
+            UIupdate();
 
         }
-
     }
 
+    // Initialise les données et textes de l'activité
     public void initActivity() {
-        currentExerciceId = 0;
-        tempsTotalExercices = 0;
-        exercices = new LinkedHashMap<>();
+        currentExerciseId = 0;
+        exercicesTotalTime = 0;
+        exercises = new LinkedHashMap<>();
         stepsList =  new ArrayList<>();
-        for(int i=0; i<training.getExercices().size(); i++) {
-            Exercice exercice = training.getExercices().get(i);
-            exercices.put(i, exercice);
-            tempsTotalExercices += exercice.getTempsTravail() * exercice.getNbSerie() + exercice.getTempsRepos() * (exercice.getNbSerie() -1);
-            for(int j=0; j<exercice.getNbSerie(); j++) {
-                stepsList.add(exercice.getName() + " : " + exercice.getTempsTravail() + "s");
-                if(j != exercice.getNbSerie() -1) {
-                    stepsList.add("Repos : " + exercice.getTempsRepos() + "s");
-                }
-            }
-            if(i != training.getExercices().size() -1) {
-                stepsList.add("Repos Long : " + training.getTempsReposL() + "s");
-            }
+        for(int i = 0; i<training.getExercises().size(); i++) {
+            Exercise exercise = training.getExercises().get(i);
+            exercises.put(i, exercise);
+            exercicesTotalTime += exercise.getTotalExerciseTime();
+            addStepToList (i, exercise);
         }
         stepsList.add("Terminé");
-        nbExercicesRestant = exercices.size();
-        nbSerieRestante = exercices.get(currentExerciceId).getNbSerie();
+        remainingExercises = exercises.size();
+        remainingRounds = exercises.get(currentExerciseId).getNumberOfRounds();
 
-        int globalTimerValue = training.getTempsPrep() + tempsTotalExercices
-                + training.getTempsReposL() * (exercices.size() -1);
+        int globalTimerValue = training.getTempsPrep() + exercicesTotalTime
+                + training.getTempsReposL() * (exercises.size() -1);
 
         // Initialise les champs textes
         initText();
 
-        // Affiche la liste des étapes
-        ListView listView = findViewById(R.id.text_liste_etapes);
-        adaptor = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, stepsList);
-        listView.setAdapter(adaptor);
-
-        //Récupère l'étape actuelle et met à jour l'affichage
-        stepText = findViewById(R.id.text_etape);
-        stepText.setText("Préparation");
-
         // Initialise les compteurs
-        compteur = new Compteur(training.getTempsPrep()*1000);
+        currentExerciseTimer = new Compteur(training.getTempsPrep()*1000);
         globalTimer = new Compteur(globalTimerValue*1000);
 
         // Abonne l'activité aux compteurs pour "suivre" les événements
-        compteur.addOnUpdateListener(this);
+        currentExerciseTimer.addOnUpdateListener(this);
         globalTimer.addOnUpdateListener(this);
 
-        miseAJour();
+        UIupdate();
     }
 
     // Initialise les champs texte et bouton de la vue
@@ -119,37 +100,29 @@ public class TimerActivity extends AppCompatActivity implements OnUpdateListener
         input = findViewById(R.id.pause_button);
         input.setText("Start");
 
+        // Affiche le nombre de séries et exercices restants
         TextView textView = findViewById(R.id.text_cycle);
-        textView.setText("Série restante : " + nbSerieRestante + "/" + exercices.get(0).getNbSerie());
+        textView.setText("Série restante : " + remainingRounds + "/" + exercises.get(0).getNumberOfRounds());
         textView = findViewById(R.id.text_serie);
-        textView.setText("Exercice restant : " + nbExercicesRestant + "/" + training.getExercices().size());
-    }
+        textView.setText("Exercice restant : " + remainingExercises + "/" + training.getExercises().size());
 
-    // Lance le compteur
-    public void onStart(View view) {
-        compteur.start();
-        globalTimer.start();
-    }
+        // Affiche la liste des étapes
+        ListView listView = findViewById(R.id.text_liste_etapes);
+        adaptor = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, stepsList);
+        listView.setAdapter(adaptor);
 
-    // Met en pause le compteur
-    public void onPause(View view) {
-        compteur.pause();
-        globalTimer.pause();
-    }
-
-    // Remet à zéro le compteur
-    public void onReset(View view) {
-        compteur.reset();
-        globalTimer.reset();
+        // Affiche la première étape comme étant préparation
+        stepText = findViewById(R.id.text_etape);
+        stepText.setText("Préparation");
     }
 
     // Mise à jour graphique
-    private void miseAJour() {
-        // Affichage des informations du compteur
+    private void UIupdate() {
+        // Affichage les informations du compteur
         timerText = (TextView) findViewById(R.id.text_timer);
-        timerText.setText(compteur.getMinutes() + ":"
-                + String.format("%02d", compteur.getSecondes()) + ":"
-                + String.format("%03d", compteur.getMillisecondes()));
+        timerText.setText(currentExerciseTimer.getMinutes() + ":"
+                + String.format("%02d", currentExerciseTimer.getSecondes()) + ":"
+                + String.format("%03d", currentExerciseTimer.getMillisecondes()));
 
         globalTimerText = (TextView) findViewById(R.id.text_global_timer);
         globalTimerText.setText(training.getName()+ " - " + globalTimer.getMinutes() + ":"
@@ -159,21 +132,18 @@ public class TimerActivity extends AppCompatActivity implements OnUpdateListener
     }
 
     // Mise à jour graphique à la fin d'une étape
-    public void majFinEtape() {
-
+    public void UIupdateEndedStep() {
         String textStep = stepsList.get(0);
-        if(textStep.equals("Terminé")) {
+        if(globalTimer.getUpdatedTime() == 0) {
             stepText.setText(textStep);
         }
         else {
             stepText.setText(textStep.substring(0, textStep.length() - 5));
         }
-
-
         TextView textView = findViewById(R.id.text_cycle);
-        textView.setText("Série restante : " + nbSerieRestante + "/" +  exercices.get(currentExerciceId).getNbSerie());
+        textView.setText("Série restante : " + remainingRounds + "/" +  exercises.get(currentExerciseId).getNumberOfRounds());
         textView = findViewById(R.id.text_serie);
-        textView.setText("Exercice restant : " + nbExercicesRestant + "/" + training.getExercices().size());
+        textView.setText("Exercice restant : " + remainingExercises + "/" + training.getExercises().size());
 
         // Mise à jour de la liste des étapes (on supprime celle qui vient de se terminer)
         stepsList.remove(0);
@@ -184,46 +154,71 @@ public class TimerActivity extends AppCompatActivity implements OnUpdateListener
         listView.setAdapter(adaptor);
     }
 
+    // Ajoute une étape à la liste des étapes
+    public void addStepToList(int i, Exercise exercise) {
+
+        for(int j = 0; j< exercise.getNumberOfRounds(); j++) {
+            stepsList.add(exercise.getName() + " : " + exercise.getWorkoutTime() + "s");
+            if(j != exercise.getNumberOfRounds() -1) {
+                stepsList.add("Repos : " + exercise.getRestTime() + "s");
+            }
+        }
+        if(i != training.getExercises().size() -1) {
+            stepsList.add("Repos Long : " + training.getTempsReposL() + "s");
+        }
+    }
+
+    // Créé compteur de la prochaine étape
+    public void createNextTimer (String testStep) {
+        stepText = (TextView) findViewById(R.id.text_etape);
+        // Décrémentation du nombres de cycle/série restants et création du compteur
+        if(stepText.getText().toString().equals("Préparation")) {
+            remainingRounds--;
+            remainingExercises--;
+            currentExerciseTimer = new Compteur((int) exercises.get(currentExerciseId).getWorkoutTime() * 1000);
+        }
+        else if(testStep.equals("Repos")) {
+            currentExerciseTimer = new Compteur((int) exercises.get(currentExerciseId).getRestTime() * 1000);
+        }
+        else if(testStep.equals("Repos Long")) {
+            remainingExercises--;
+            currentExerciseTimer = new Compteur((int) training.getTempsReposL() * 1000);
+            currentExerciseId++;
+            remainingRounds = exercises.get(currentExerciseId).getNumberOfRounds();
+        }
+        else {
+            remainingRounds--;
+            currentExerciseTimer = new Compteur((int) exercises.get(currentExerciseId).getWorkoutTime() * 1000);
+        }
+    }
+
+    // Lance les caompteurs
+    public void onStart(View view) {
+        currentExerciseTimer.start();
+        globalTimer.start();
+    }
+
+    // Met en pause les compteurs
+    public void onPause(View view) {
+        currentExerciseTimer.pause();
+        globalTimer.pause();
+    }
+
     /**
      * Méthode appelée à chaque update du compteur (l'activité est abonnée au compteur)
      */
     @Override
     public void onUpdate() {
-        // Si le compteur se termine et qu'il reste au moins une étape
-        if(compteur.getUpdatedTime() == 0) {
-            System.out.println("compteur");
-            System.out.println(compteur);
-            System.out.println("global compteur");
-            System.out.println(globalTimer);
+        // Si le currentExerciseTimer se termine et qu'il reste au moins une étape
+        if(currentExerciseTimer.getUpdatedTime() == 0) {
             if(globalTimer.getUpdatedTime() != 0) {
-
                 String testStep = stepsList.get(0).substring(0, stepsList.get(0).length() - 5);
-                stepText = (TextView) findViewById(R.id.text_etape);
-                // Décrémentation du nombres de cycle/série restants
-                if(stepText.getText().toString().equals("Préparation")) {
-                    nbSerieRestante--;
-                    nbExercicesRestant--;
-                    compteur = new Compteur((int) exercices.get(currentExerciceId).getTempsTravail() * 1000);
-                }
-                else if(testStep.equals("Repos")) {
-                    compteur = new Compteur((int) exercices.get(currentExerciceId).getTempsRepos() * 1000);
-                }
-                else if(testStep.equals("Repos Long")) {
-                    nbExercicesRestant--;
-                    compteur = new Compteur((int) training.getTempsReposL() * 1000);
-                    currentExerciceId++;
-                    nbSerieRestante = exercices.get(currentExerciceId).getNbSerie();
-                }
-                else {
-                    nbSerieRestante--;
-                    compteur = new Compteur((int) exercices.get(currentExerciceId).getTempsTravail() * 1000);
-                }
+                createNextTimer(testStep);
+                currentExerciseTimer.addOnUpdateListener(this);
+                currentExerciseTimer.start();
 
                 // Mise à jour graphique
-                majFinEtape();
-
-                compteur.addOnUpdateListener(this);
-                compteur.start();
+                UIupdateEndedStep();
             }
             // Si l'entrainement se termine
             else if(globalTimer.getUpdatedTime() == 0){
@@ -233,29 +228,30 @@ public class TimerActivity extends AppCompatActivity implements OnUpdateListener
                 input.setText("Restart");
 
                 // Mise à jour graphique
-                majFinEtape();
-
+                UIupdateEndedStep();
             }
         }
         // Mise à jour graphique
-        miseAJour();
+        UIupdate();
     }
 
     // Retour à l'activité principale
     public void onClickStop(View v) {
         Button input = findViewById(R.id.stop_button);
         String textButton = input.getText().toString();
-        if(textButton == "Reset") {
+        // Si le compteur est en pause, qu'il a déjà été démarré et que l'entrainement n'est pas terminé, on reset l'entrainement
+        if(!currentExerciseTimer.isStarted() && currentExerciseTimer.hasStarted() && globalTimer.getUpdatedTime() != 0) {
             initActivity();
             input = findViewById(R.id.pause_button);
             input.setText("Start");
         }
+        // Sinon on le stop et on retourne à l'activité principale
         else {
             Intent intent = new Intent(this, MainActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(intent);
-            if(compteur.hasStarted()) {
-                compteur.stop();
+            if(currentExerciseTimer.hasStarted()) {
+                currentExerciseTimer.stop();
                 globalTimer.stop();
             }
 
@@ -269,14 +265,13 @@ public class TimerActivity extends AppCompatActivity implements OnUpdateListener
         }
         else {
             Button input = findViewById(R.id.pause_button);
-            String textButton = input.getText().toString();
-            if(textButton == "Pause") {
+            if(currentExerciseTimer.isStarted() && globalTimer.isStarted()) {
                 onPause(v);
                 input.setText("Start");
                 input = findViewById(R.id.stop_button);
                 input.setText("Reset");
             }
-            if(textButton == "Start") {
+            else {
                 onStart(v);
                 input.setText("Pause");
                 input = findViewById(R.id.stop_button);
@@ -285,60 +280,8 @@ public class TimerActivity extends AppCompatActivity implements OnUpdateListener
         }
     }
 
-    protected void onSaveInstanceState(Bundle savedInstanceState) {
-        super.onSaveInstanceState(savedInstanceState);
-        savedInstanceState.putLong("compteur", compteur.getUpdatedTime());
-        savedInstanceState.putLong("globalTimer", globalTimer.getUpdatedTime());
-        if(compteur.isStarted() && globalTimer.isStarted()) {
-            savedInstanceState.putBoolean("timerWasStarted", true);
-            compteur.stop();
-            globalTimer.stop();
-        }
-        else {
-            savedInstanceState.putBoolean("timerWasStarted", false);
-        }
-        compteur.addOnUpdateListener(null);
-        globalTimer.addOnUpdateListener(null);
-        savedInstanceState.putSerializable("training", training);
-        savedInstanceState.putSerializable("exercices", exercices);
-        savedInstanceState.putInt("currentExerciceId", currentExerciceId);
-        savedInstanceState.putInt("nbExercicesRestant", nbExercicesRestant);
-        savedInstanceState.putInt("nbSerieRestante", nbSerieRestante);
-        savedInstanceState.putSerializable("stepsList", stepsList);
-        getAllText();
-        savedInstanceState.putSerializable("allText", allText);
-    }
-
-    private void restoreMe(Bundle state) {
-        if (state!=null) { // Le bundle existe donc:
-            // Restauration des données
-            Long compteurTime = state.getLong("compteur");
-            Long globalTimerTime = state.getLong("globalTimer");
-            compteur = new Compteur(compteurTime);
-            globalTimer = new Compteur(globalTimerTime);
-
-            if(globalTimer.getUpdatedTime() != 0) {
-                compteur.addOnUpdateListener(this);
-                globalTimer.addOnUpdateListener(this);
-                boolean timerWasStarted = state.getBoolean("timerWasStarted");
-                if(timerWasStarted) {
-                    compteur.start();
-                    globalTimer.start();
-                }
-            }
-
-            training = (Training) state.getSerializable("training");
-            exercices = (LinkedHashMap<Integer, Exercice>) state.getSerializable("exercices");
-            currentExerciceId = state.getInt("currentExerciceId");
-            nbExercicesRestant = state.getInt("nbExercicesRestant");
-            nbSerieRestante = state.getInt("nbSerieRestante");
-            stepsList = (ArrayList<String>) state.getSerializable("stepsList");
-            allText = (LinkedHashMap<String, String>) state.getSerializable("allText");
-        }
-
-}
-
-    public void getAllText(){
+    // Sauvegarde les champs textes de l'activité lors d'un changement d'orientation
+    public void saveAllText(){
         allText = new LinkedHashMap<>();
         TextView text = findViewById(R.id.text_etape);
         allText.put("textEtape", text.getText().toString());
@@ -352,7 +295,8 @@ public class TimerActivity extends AppCompatActivity implements OnUpdateListener
         allText.put("textSerie", text.getText().toString());
     }
 
-    public void setAllText() {
+    // Restore les champs textes de l'activité lors d'un changement d'orientation
+    public void restoreAllText() {
         TextView text = findViewById(R.id.text_etape);
         System.out.println(allText.get("textEtape"));
         text.setText(allText.get("textEtape"));
@@ -366,4 +310,56 @@ public class TimerActivity extends AppCompatActivity implements OnUpdateListener
         text.setText(allText.get("textSerie"));
     }
 
+    // Sauvegarde les données de l'activité lors d'un changement d'orientation
+    protected void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putLong("currentExerciseTimer", currentExerciseTimer.getUpdatedTime());
+        savedInstanceState.putLong("globalTimer", globalTimer.getUpdatedTime());
+        if(currentExerciseTimer.isStarted() && globalTimer.isStarted()) {
+            savedInstanceState.putBoolean("timerWasStarted", true);
+            currentExerciseTimer.stop();
+            globalTimer.stop();
+        }
+        else {
+            savedInstanceState.putBoolean("timerWasStarted", false);
+        }
+        currentExerciseTimer.addOnUpdateListener(null);
+        globalTimer.addOnUpdateListener(null);
+        savedInstanceState.putSerializable("training", training);
+        savedInstanceState.putSerializable("exercises", exercises);
+        savedInstanceState.putInt("currentExerciseId", currentExerciseId);
+        savedInstanceState.putInt("remainingExercises", remainingExercises);
+        savedInstanceState.putInt("remainingRounds", remainingRounds);
+        savedInstanceState.putSerializable("stepsList", stepsList);
+        saveAllText();
+        savedInstanceState.putSerializable("allText", allText);
+    }
+
+    // Restaure les données de l'activité lors d'un changement d'orientation
+    private void restoreMe(Bundle state) {
+        if (state!=null) { // Le bundle existe donc:
+            // Restauration des données
+            Long compteurTime = state.getLong("currentExerciseTimer");
+            Long globalTimerTime = state.getLong("globalTimer");
+            currentExerciseTimer = new Compteur(compteurTime);
+            globalTimer = new Compteur(globalTimerTime);
+            // Si le compteur n'était pas terminé
+            if(globalTimer.getUpdatedTime() != 0) {
+                currentExerciseTimer.addOnUpdateListener(this);
+                globalTimer.addOnUpdateListener(this);
+                boolean timerWasStarted = state.getBoolean("timerWasStarted");
+                if(timerWasStarted) {
+                    currentExerciseTimer.start();
+                    globalTimer.start();
+                }
+            }
+            training = (Training) state.getSerializable("training");
+            exercises = (LinkedHashMap<Integer, Exercise>) state.getSerializable("exercises");
+            currentExerciseId = state.getInt("currentExerciseId");
+            remainingExercises = state.getInt("remainingExercises");
+            remainingRounds = state.getInt("remainingRounds");
+            stepsList = (ArrayList<String>) state.getSerializable("stepsList");
+            allText = (LinkedHashMap<String, String>) state.getSerializable("allText");
+        }
+    }
 }

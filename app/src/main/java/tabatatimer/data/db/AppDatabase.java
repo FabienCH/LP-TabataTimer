@@ -6,7 +6,7 @@ import android.arch.persistence.room.TypeConverters;
 
 import tabatatimer.data.Converters;
 
-@Database(entities = {Training.class}, version = 2)
+@Database(entities = {Training.class}, version = 3)
 @TypeConverters({Converters.class})
 public abstract class AppDatabase extends RoomDatabase {
 

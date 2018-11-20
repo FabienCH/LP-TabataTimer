@@ -13,7 +13,6 @@ public class DatabaseClient {
     private DatabaseClient(Context context) {
 
         //creating the app database with Room database builder
-        //MyToDos is the name of the database
         appDatabase = Room.databaseBuilder(context, AppDatabase.class, "TabathaTimer").fallbackToDestructiveMigration().build();
     }
 

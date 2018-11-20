@@ -3,13 +3,11 @@ package tabatatimer.data.db;
 import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.PrimaryKey;
-import android.os.Parcel;
-import android.os.Parcelable;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 
-import tabatatimer.data.Exercice;
+import tabatatimer.data.Exercise;
 
 @Entity
 public class Training implements Serializable {
@@ -23,8 +21,8 @@ public class Training implements Serializable {
     @ColumnInfo(name = "tempsPrep")
     private int tempsPrep;
 
-    @ColumnInfo(name = "exercices")
-    private ArrayList<Exercice> exercices = new ArrayList<Exercice>();
+    @ColumnInfo(name = "exercises")
+    private ArrayList<Exercise> exercises = new ArrayList<Exercise>();
 
     @ColumnInfo(name = "tempsReposL")
     private int tempsReposL;
@@ -56,12 +54,12 @@ public class Training implements Serializable {
         this.tempsPrep = tempsPrep;
     }
 
-    public ArrayList<Exercice> getExercices() { return exercices; }
+    public ArrayList<Exercise> getExercises() { return exercises; }
 
-    public void setExercices(ArrayList<Exercice> exercices) { this.exercices = exercices; }
+    public void setExercises(ArrayList<Exercise> exercises) { this.exercises = exercises; }
 
-    public void addExercice(Exercice exercice) {
-        this.exercices.add(exercice);
+    public void addExercice(Exercise exercise) {
+        this.exercises.add(exercise);
     }
 
     public int getTempsReposL(){ return tempsReposL; }

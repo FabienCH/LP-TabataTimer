@@ -2,7 +2,6 @@ package tabatatimer;
 
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -18,7 +17,8 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
 
-import tabatatimer.data.Exercice;
+import tabatatimer.data.Exercise;
+import tabatatimer.data.SaveTraining;
 import tabatatimer.data.db.DatabaseClient;
 import tabatatimer.data.db.Training;
 
@@ -27,7 +27,6 @@ public class TrainingSetupActivity extends AppCompatActivity {
     private EditText input;
     private Training training = new Training();
     private DatabaseClient mDb;
-    protected List<Training> trainingFromDb;
     protected ArrayList<AlertDialog.Builder> alertDialogList  = new ArrayList<AlertDialog.Builder>();
 
     public static final String TRAINING = "Training";
@@ -37,52 +36,34 @@ public class TrainingSetupActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_training_setup);
 
+        // Récupère le nom de l'entrainement, l'affiche et l'ajoute à l'objet training
         String trainingName = getIntent().getStringExtra(MainActivity.TRAINING_NAME);
         TextView textView = findViewById(R.id.training_name);
         textView.setText(trainingName);
-
-        //Initialise un entrainement par défaut
         training.setName(trainingName);
 
         mDb = DatabaseClient.getInstance(getApplicationContext());
-
     }
 
+    // Sauvegarde l'entrainement créé dans la base de données et lance l'Activity timer
     private void saveAndStartTraining() {
-
-        /**
-         * Création d'une classe asynchrone pour sauvegarder l'entrainement donné par l'utilisateur
-         */
-        class SaveAndStartTraining extends AsyncTask<Void, Void, Training> {
-
+        new SaveTraining(new SaveTraining.AsyncResponse(){
             @Override
-            protected Training doInBackground(Void... Voids) {
-                //Insertion dans la base de donnée
-                mDb.getAppDatabase()
-                        .trainingDao()
-                        .insert(training);
-                return training;
-            }
-
-            //Après l'enregistrement en base de donnée, lance l'activité TimerActivity
-            @Override
-            protected void onPostExecute(Training training) {
-                super.onPostExecute(training);
-                //Création de l'activty Timer
+            // Récupère le résultat renvoyé par la méthode onPostExecute() de la classe SaveTraining
+            public void processFinish(Training training){
                 Intent intent = new Intent(TrainingSetupActivity.this, TimerActivity.class);
                 intent.putExtra(TRAINING, training);
                 startActivity(intent);
             }
-        }
-
-        SaveAndStartTraining st = new SaveAndStartTraining();
-        st.execute();
+        }, mDb, training).execute();
     }
 
     public void onClickAdd(View v) {
         Button button = findViewById(R.id.button);
         String textButton = button.getText().toString();
+        // Si l'entrainement a été configuré
         if(textButton == "Sauvegarder et lancer") {
+            // On vérifie que les données de l'entrainement sont valides et on le sauvegarde
             if(validTrainingData()) {
                 input = (EditText) findViewById(R.id.temps_prep);
                 Integer trainingTempsPrep = Integer.parseInt(input.getText().toString());
@@ -96,63 +77,72 @@ public class TrainingSetupActivity extends AppCompatActivity {
         else {
             EditText input = findViewById(R.id.nb_exercice);
             String strNbExercice = input.getText().toString();
+            // On vérifie que les données de l'entrainement sont valides
             if(validTrainingData()) {
-                for(int i=training.getExercices().size(); i < Integer.parseInt(strNbExercice); i++) {
+                // Affichage des alert dialog pour configurer les exercices
+                // i = training.getExercises().size() pour que si l'on clique ok avec des données d'exercice non valide,
+                // on afficher la boite de dialogue pour l'exercice n+1 si n exercices ont déja été configuré conrrectement
+                for(int i = training.getExercises().size(); i < Integer.parseInt(strNbExercice); i++) {
                     alertDialogList.add(new AlertDialog.Builder(this));
                     // Add the buttons
                     final int finalI = i;
                     final int nbExercice = Integer.parseInt(strNbExercice);
-                    alertDialogList.get(i - training.getExercices().size()).setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    alertDialogList.get(i - training.getExercises().size()).setPositiveButton("OK", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface currentDialog, int id) {
-
                             // User clicked OK button
-                            AlertDialog alertDialog = (AlertDialog) currentDialog;
-                            if(validExerciceData(alertDialog)) {
-                                Exercice exercice = new Exercice();
-                                exercice = setExerciceAttributes(exercice, alertDialog);
-                                training.addExercice(exercice);
-
-                                LayoutInflater inflater = getLayoutInflater();
-                                View alertLayout = inflater.inflate(R.layout.layout_add_exercice, null);
-
-                                ListView listView = findViewById(R.id.text_liste_exercices);
-                                ArrayList exercicesList = getExercicesList(training.getExercices());
-                                ArrayAdapter<String> adaptor = new ArrayAdapter<String>(TrainingSetupActivity.this, android.R.layout.simple_list_item_1, exercicesList);
-
-                                listView.setAdapter(adaptor);
-                                currentDialog.dismiss();
-
-                                if(finalI < nbExercice -1) {
-                                    int numExercice = training.getExercices().size() +1;
-                                    AlertDialog nextDialog = alertDialogList.get(finalI +1).setTitle("Exercice " + numExercice).create();
-                                    nextDialog.setView(alertLayout);
-                                    nextDialog.show();
-                                }
-                                else {
-                                    EditText input = findViewById(R.id.nb_exercice);
-                                    input.setEnabled(false);
-                                    TextView button = TrainingSetupActivity.this.findViewById(R.id.button);
-                                    button.setText("Sauvegarder et lancer");
-                                }
-                            }
-                            else {
-                                displayFirstDialog(finalI);
-                            }
+                            onClickOkOnDialog(currentDialog, finalI, nbExercice);
                         }
                     });
-
                     // Create the AlertDialog
-                    if(i == training.getExercices().size()) {
+                    if(i == training.getExercises().size()) {
                         displayFirstDialog(i);
                     }
                 }
             }
-
         }
-
     }
 
+    // Valide les données d'un exercice, affiche la prochaine allert dialog ou permet de lancer l'entrainement
+    public void onClickOkOnDialog(DialogInterface currentDialog, int i, int nbExercice) {
+        AlertDialog alertDialog = (AlertDialog) currentDialog;
+        // Si les données sont valide, on ajoute l'exercice à la liste
+        if(validExerciceData(alertDialog)) {
+            LayoutInflater inflater = getLayoutInflater();
+            View alertLayout = inflater.inflate(R.layout.layout_add_exercice, null);
+            addExerciseToList(alertDialog);
+            currentDialog.dismiss();
+            // Si il reste des exercices, on affiche la prochaine alert dialog
+            if(i < nbExercice -1) {
+                int numExercice = training.getExercises().size() +1;
+                AlertDialog nextDialog = alertDialogList.get(i +1).setTitle("Exercise " + numExercice).create();
+                nextDialog.setView(alertLayout);
+                nextDialog.show();
+            }
+            // Sinon, on permet de lancer l'entrainement
+            else {
+                EditText input = findViewById(R.id.nb_exercice);
+                input.setEnabled(false);
+                TextView button = TrainingSetupActivity.this.findViewById(R.id.button);
+                button.setText("Sauvegarder et lancer");
+            }
+        }
+        else {
+            displayFirstDialog(i);
+        }
+    }
+
+    // Affiche la permière alert dialog
+    public void displayFirstDialog(int i){
+        LayoutInflater inflater = getLayoutInflater();
+        View alertLayout = inflater.inflate(R.layout.layout_add_exercice, null);
+        alertDialogList.get(i).setView(alertLayout);
+        int numExercice = i +1;
+        AlertDialog dialog =  alertDialogList.get(i).setTitle("Exercise " + numExercice).create();
+        dialog.show();
+    }
+
+    // Valide les données d'un exercice (nom pas vide et temps supérieur à 0)
     public boolean validExerciceData(AlertDialog dialog) {
         TextView input = dialog.findViewById(R.id.input_name);
         String textName = input.getText().toString();
@@ -160,21 +150,18 @@ public class TrainingSetupActivity extends AppCompatActivity {
             Toast.makeText(getApplicationContext(), "Veillez entrer un nom d'exercice", Toast.LENGTH_LONG).show();
             return false;
         }
-
         input = dialog.findViewById(R.id.tps_travail);
         String tpsTravail = input.getText().toString();
         if(tpsTravail.isEmpty() || Integer.parseInt(tpsTravail) <= 0){
             Toast.makeText(getApplicationContext(), "Le temps de travail doit être supérieur à 0", Toast.LENGTH_LONG).show();
             return false;
         }
-
         input = dialog.findViewById(R.id.temps_repos);
         String tpsRepos = input.getText().toString();
         if(tpsRepos.isEmpty() || Integer.parseInt(tpsRepos) <= 0){
             Toast.makeText(getApplicationContext(), "Le temps de repos doit être supérieur à 0", Toast.LENGTH_LONG).show();
             return false;
         }
-
         input = dialog.findViewById(R.id.nb_serie);
         String nbSerie = input.getText().toString();
         if(nbSerie.isEmpty() || Integer.parseInt(nbSerie) <= 0){
@@ -184,6 +171,7 @@ public class TrainingSetupActivity extends AppCompatActivity {
         return true;
     }
 
+    // Valide les données d'un entrainement (nom pas vide et temps supérieur à 0)
     public boolean validTrainingData() {
         EditText input = findViewById(R.id.temps_prep);
         String tempsPrep = input.getText().toString();
@@ -191,65 +179,67 @@ public class TrainingSetupActivity extends AppCompatActivity {
             Toast.makeText(getApplicationContext(), "Le temps de préparation doit être supérieur à 0", Toast.LENGTH_LONG).show();
             return false;
         }
-
         input = findViewById(R.id.nb_exercice);
         String nbExercice = input.getText().toString();
         if(nbExercice.isEmpty() || Integer.parseInt(nbExercice) <= 0){
             Toast.makeText(getApplicationContext(), "Veillez entrer un nombre d'exercice supérieur à 0", Toast.LENGTH_LONG).show();
             return false;
         }
-
         input = findViewById(R.id.temps_reposL);
         String tempsReposL = input.getText().toString();
         if(tempsReposL.isEmpty() || Integer.parseInt(tempsReposL) <= 0){
             Toast.makeText(getApplicationContext(), "Le temps de repos doit être supérieur à 0", Toast.LENGTH_LONG).show();
             return false;
         }
-
         return true;
     }
 
-    public Exercice setExerciceAttributes(Exercice exercice, AlertDialog dialog) {
+    // Ajoute les données entrées par l'utilisateur à un exercice
+    public Exercise setExerciceAttributes(Exercise exercise, AlertDialog dialog) {
         TextView input = dialog.findViewById(R.id.input_name);
         String textName = input.getText().toString();
-        exercice.setName(textName);
+        exercise.setName(textName);
 
         input = dialog.findViewById(R.id.tps_travail);
         Integer tpsTravail = Integer.parseInt(input.getText().toString());
-        exercice.setTempsTravail(tpsTravail);
+        exercise.setWorkoutTime(tpsTravail);
 
         input = dialog.findViewById(R.id.temps_repos);
         Integer tpsRepos = Integer.parseInt(input.getText().toString());
-        exercice.setTempsRepos(tpsRepos);
+        exercise.setRestTime(tpsRepos);
 
         input = dialog.findViewById(R.id.nb_serie);
         Integer nbSerie = Integer.parseInt(input.getText().toString());
-        exercice.setNbSerie(nbSerie);
+        exercise.setNumberOfRounds(nbSerie);
 
-        return exercice;
+        return exercise;
     }
 
-    public ArrayList<String> getExercicesList(List<Exercice> exercices) {
+    // Ajoute un exercice à la liste
+    public void addExerciseToList(AlertDialog alertDialog) {
+        Exercise exercise = new Exercise();
+        exercise = setExerciceAttributes(exercise, alertDialog);
+        training.addExercice(exercise);
+
+        ListView listView = findViewById(R.id.text_liste_exercices);
+        ArrayList exercicesList = getExercicesList(training.getExercises());
+        ArrayAdapter<String> adaptor = new ArrayAdapter<String>(TrainingSetupActivity.this, android.R.layout.simple_list_item_1, exercicesList);
+        listView.setAdapter(adaptor);
+    }
+
+    // Ajoute un exercice à la liste et la retourne
+    public ArrayList<String> getExercicesList(List<Exercise> exercises) {
         ArrayList<String> exercicesList = new ArrayList<String>();
-        for(int i=0; i<exercices.size(); i++) {
-            String exerciceDetails = exercices.get(i).getName()
-                    + " : ["
-                    + exercices.get(i).getTempsTravail()
-                    + "s - "
-                    + exercices.get(i).getTempsRepos()
-                    + "s] x "
-                    + exercices.get(i).getNbSerie();
+        for(int i = 0; i< exercises.size(); i++) {
+            String exerciceDetails = exercises.get(i).getName()
+                + " : ["
+                + exercises.get(i).getWorkoutTime()
+                + "s - "
+                + exercises.get(i).getRestTime()
+                + "s] x "
+                + exercises.get(i).getNumberOfRounds();
             exercicesList.add(exerciceDetails);
         }
         return exercicesList;
-    }
-
-    public void displayFirstDialog(int i){
-            LayoutInflater inflater = getLayoutInflater();
-            View alertLayout = inflater.inflate(R.layout.layout_add_exercice, null);
-            alertDialogList.get(i).setView(alertLayout); // Again this is a set method, not add
-            int numExercice = i +1;
-            AlertDialog dialog =  alertDialogList.get(i).setTitle("Exercice " + numExercice).create();
-            dialog.show();
     }
 }
