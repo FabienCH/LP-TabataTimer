@@ -16,8 +16,11 @@ public interface TrainingDao {
     @Query("SELECT * FROM training")
     List<Training> getAll();
 
-    @Query("SELECT * FROM training WHERE name LIKE :name")
-    public abstract List<Training> getByName(String name);
+    @Query("SELECT * FROM training WHERE name = :name")
+    public abstract Training getByName(String name);
+
+    @Query("DELETE FROM training WHERE name = :name")
+    public abstract int deleteByName(String name);
 
     @Insert
     void insert(Training training);

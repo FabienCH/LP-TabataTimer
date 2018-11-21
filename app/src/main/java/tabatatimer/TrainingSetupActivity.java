@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import tabatatimer.data.Exercise;
-import tabatatimer.data.SaveTraining;
+import tabatatimer.data.async.SaveTraining;
 import tabatatimer.data.db.DatabaseClient;
 import tabatatimer.data.db.Training;
 

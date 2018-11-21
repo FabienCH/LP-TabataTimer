@@ -9,6 +9,8 @@
         android:id="@+id/workout"
         android:layout_height="match_parent"
         android:layout_width="match_parent"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
         android:orientation="vertical">
         <TextView
             android:id="@+id/training_name"
@@ -16,7 +18,6 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_weight = "0"
-            android:text=""
             android:textSize="25sp"
             android:layout_marginTop="15dp"/>
         <TextView
@@ -36,14 +37,14 @@
             android:gravity="center"
             android:layout_weight = "0"
             android:inputType="number"
-            android:text="" />
+            android:text="10" />
         <TextView
             android:id="@+id/text_exercice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_weight = "0"
-            android:text="Nombre d'exercises"
+            android:text="Nombre d'exercices"
             android:textSize="18sp"
             android:layout_marginTop="15dp" />
         <EditText
@@ -52,7 +53,7 @@
             android:layout_width="match_parent"
             android:inputType="number"
             android:layout_weight = "0"
-            android:text=""
+            android:text="3"
             android:gravity="center" />
         <TextView
             android:id="@+id/text_repos"
@@ -60,7 +61,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_weight = "0"
-            android:text="Repos entre chaque exercise"
+            android:text="Repos entre chaque exercice"
             android:textSize="18sp"
             android:layout_marginTop="15dp" />
         <EditText
@@ -68,7 +69,7 @@
             android:layout_height="wrap_content"
             android:layout_width="match_parent"
             android:inputType="number"
-            android:text=""
+            android:text="60"
             android:gravity="center"
             android:layout_gravity="center"
             android:layout_weight = "0" />

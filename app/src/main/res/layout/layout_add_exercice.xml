@@ -8,7 +8,9 @@
     <RelativeLayout
         android:id="@+id/workout"
         android:layout_height="wrap_content"
-        android:layout_width="wrap_content" >
+        android:layout_width="wrap_content"
+        android:focusable="true"
+        android:focusableInTouchMode="true">
         <TextView
             android:id="@+id/name"
             android:layout_width="wrap_content"
@@ -22,7 +24,6 @@
             android:layout_height="wrap_content"
             android:layout_width="match_parent"
             android:inputType="text"
-            android:text=""
             android:gravity="center"
             android:layout_below="@id/name"/>
         <TextView
@@ -39,7 +40,7 @@
             android:layout_height="wrap_content"
             android:layout_width="match_parent"
             android:inputType="number"
-            android:text=""
+            android:text="30"
             android:gravity="center"
             android:layout_below="@id/text_travail"/>
         <TextView
@@ -56,7 +57,7 @@
             android:layout_height="wrap_content"
             android:layout_width="match_parent"
             android:inputType="number"
-            android:text=""
+            android:text="30"
             android:gravity="center"
             android:layout_below="@id/text_repos"/>
         <TextView
@@ -73,7 +74,7 @@
             android:layout_height="wrap_content"
             android:layout_width="match_parent"
             android:inputType="number"
-            android:text=""
+            android:text="3"
             android:gravity="center"
             android:layout_below="@id/text_serie"/>
     </RelativeLayout>

@@ -192,7 +192,7 @@ public class TimerActivity extends AppCompatActivity implements OnUpdateListener
         }
     }
 
-    // Lance les caompteurs
+    // Lance les compteurs
     public void onStart(View view) {
         currentExerciseTimer.start();
         globalTimer.start();

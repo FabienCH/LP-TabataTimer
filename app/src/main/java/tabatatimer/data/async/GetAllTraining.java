@@ -1,4 +1,4 @@
-package tabatatimer.data;
+package tabatatimer.data.async;
 
 import android.os.AsyncTask;
 

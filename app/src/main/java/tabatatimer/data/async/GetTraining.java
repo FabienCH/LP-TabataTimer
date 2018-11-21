@@ -1,4 +1,4 @@
-package tabatatimer.data;
+package tabatatimer.data.async;
 
 import android.os.AsyncTask;
 import android.widget.AdapterView;
@@ -11,16 +11,16 @@ import tabatatimer.data.db.Training;
 /**
  * Création d'une classe asynchrone pour récupérer un entrainement
  */
-public class GetTraining extends AsyncTask<Void, Void, List<Training>> {
+public class GetTraining extends AsyncTask<Void, Void, Training> {
 
     protected GetTraining.AsyncResponse delegate = null;
     protected DatabaseClient mDb;
     private AdapterView<?> adapterView;
     private int position;
-    protected List<Training> trainingFromDb;
+    protected Training trainingFromDb;
 
     public interface AsyncResponse {
-        void processFinish(List<Training> trainingFromDb);
+        void processFinish(Training trainingFromDb);
     }
 
     public GetTraining(GetTraining.AsyncResponse delegate, DatabaseClient mDb, AdapterView<?> adapterView, int position){
@@ -31,8 +31,8 @@ public class GetTraining extends AsyncTask<Void, Void, List<Training>> {
     }
 
     @Override
-    protected List<Training> doInBackground(Void... Voids) {
-        //Récupération dans la base de donné du dernier entrainement effectué
+    protected Training doInBackground(Void... Voids) {
+        //Récupération dans la base de donné de l'entrainement sur lequel l'utilisateur a cliqué
         trainingFromDb = mDb.getAppDatabase()
                 .trainingDao()
                 .getByName(adapterView.getItemAtPosition(position).toString());
@@ -40,7 +40,7 @@ public class GetTraining extends AsyncTask<Void, Void, List<Training>> {
     }
 
     @Override
-    protected void onPostExecute(List<Training> trainingFromDb) {
+    protected void onPostExecute(Training trainingFromDb) {
         delegate.processFinish(trainingFromDb);
     }
 
