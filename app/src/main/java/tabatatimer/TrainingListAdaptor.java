@@ -9,8 +9,6 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import java.util.ArrayList;
-
 public class TrainingListAdaptor extends ArrayAdapter<String> {
     private final Context context;
     private final String[] values;

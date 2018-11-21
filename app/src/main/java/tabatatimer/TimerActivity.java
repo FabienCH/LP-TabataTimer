@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
@@ -38,11 +39,32 @@ public class TimerActivity extends AppCompatActivity implements OnUpdateListener
     private ArrayAdapter<String> adaptor;
     private LinkedHashMap<String, String> allText;
 
+    @Override
+    public void onPause() {
+        super.onPause();  // Always call the superclass method first
+        if(currentExerciseTimer.isStarted()) {
+            currentExerciseTimer.pause();
+            globalTimer.pause();
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if(currentExerciseTimer.hasStarted()) {
+            Button input = findViewById(R.id.pause_button);
+            input.setText("Start");
+            input = findViewById(R.id.stop_button);
+            input.setText("Reset");
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState)  {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_timer);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
 
         if(savedInstanceState == null) {
             // Initialise les données pour les compteurs

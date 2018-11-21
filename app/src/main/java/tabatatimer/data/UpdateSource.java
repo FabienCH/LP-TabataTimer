@@ -22,6 +22,8 @@ public class UpdateSource {
 
         // Notify everybody that may be interested.
         for (OnUpdateListener listener : listeners)
-            listener.onUpdate();
+            if(listener != null) {
+                listener.onUpdate();
+            }
     }
 }
