@@ -38,7 +38,6 @@ public class MainActivity extends AppCompatActivity {
 
         mDb = DatabaseClient.getInstance(getApplicationContext());
 
-        // Récupération de la liste des entrainements depuis la base de données
         getAllTraining();
 
     }
@@ -62,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // Récupération de la liste des entrainements depuis la base de données
     public void getAllTraining() {
         new GetAllTraining(new GetAllTraining.AsyncResponse(){
             @Override
@@ -127,6 +127,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    // Suppression d'un entrainement de la base de données
     public void deleteTraining(AdapterView<?> adapterView, final int position) {
         new DeleteTraining(new DeleteTraining.AsyncResponse(){
             @Override

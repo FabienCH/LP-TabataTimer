@@ -30,7 +30,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight = "0"
-                android:text="fttydt"
                 android:layout_gravity="center"
                 android:textSize="25sp"
                 android:layout_marginTop="15dp"/>
@@ -39,7 +38,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight = "0"
-                android:text="eee"
                 android:layout_gravity="center"
                 android:textSize="25sp"
                 android:layout_marginTop="15dp"/>
@@ -48,7 +46,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight = "0"
-                android:text="afeaef"
                 android:layout_gravity="center"
                 android:textSize="50sp"  />
             <LinearLayout
@@ -66,7 +63,6 @@
                     android:padding="20dp"
                     android:gravity="center"
                     android:onClick="onClickPause"
-                    android:text="zda"
                     android:textSize="25sp" />
                 <Button android:id="@+id/stop_button"
                     android:layout_width="wrap_content"
@@ -75,7 +71,6 @@
                     android:padding="20dp"
                     android:gravity="center"
                     android:onClick="onClickStop"
-                    android:text="zd"
                     android:textSize="25sp" />
             </LinearLayout>
             <LinearLayout
@@ -91,7 +86,6 @@
                     android:layout_height="wrap_content"
                     android:layout_weight = "1"
                     android:gravity="center"
-                    android:text="ddz"
                     android:textSize="18sp" />
                 <TextView
                     android:id="@+id/text_serie"
@@ -99,7 +93,6 @@
                     android:layout_height="wrap_content"
                     android:layout_weight = "1"
                     android:gravity="center"
-                    android:text="zad"
                     android:textSize="18sp" />
             </LinearLayout>
         </LinearLayout>

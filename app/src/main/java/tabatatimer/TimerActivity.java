@@ -39,15 +39,17 @@ public class TimerActivity extends AppCompatActivity implements OnUpdateListener
     private ArrayAdapter<String> adaptor;
     private LinkedHashMap<String, String> allText;
 
+    // Met en pause les compteurs lors de l'intterruption par une autre application
     @Override
-    public void onPause() {
-        super.onPause();  // Always call the superclass method first
+    public void onStop() {
+        super.onStop();
         if(currentExerciseTimer.isStarted()) {
             currentExerciseTimer.pause();
             globalTimer.pause();
         }
     }
 
+    // Change les textes des boutons lors du retour après une intterruption
     @Override
     public void onResume() {
         super.onResume();

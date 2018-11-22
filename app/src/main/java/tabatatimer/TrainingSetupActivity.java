@@ -74,6 +74,7 @@ public class TrainingSetupActivity extends AppCompatActivity {
                 saveAndStartTraining();
             }
         }
+        // Sinon, l'utilisateur doit configurer les exercices
         else {
             EditText input = findViewById(R.id.nb_exercice);
             String strNbExercice = input.getText().toString();
